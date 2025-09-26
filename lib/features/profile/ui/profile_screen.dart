@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../auth/phone_auth.dart';
 
@@ -16,6 +20,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   bool _saving = false;
+  bool _uploadingPhoto = false;
+  final _picker = ImagePicker();
 
   @override
   void initState() {
@@ -64,6 +70,32 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
+  Future<void> _updateProfilePicture() async {
+    final xFile = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+    if (xFile == null) return;
+    
+    setState(() => _uploadingPhoto = true);
+    try {
+      final user = FirebaseAuth.instance.currentUser!;
+      final ref = FirebaseStorage.instance.ref().child('users/${user.uid}/profile.jpg');
+      await ref.putFile(File(xFile.path));
+      final url = await ref.getDownloadURL();
+      
+      await user.updatePhotoURL(url);
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'photoURL': url,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      
+      if (mounted) setState(() => _uploadingPhoto = false);
+    } catch (e) {
+      if (mounted) {
+        setState(() => _uploadingPhoto = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final u = FirebaseAuth.instance.currentUser;
@@ -75,8 +107,32 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(children: [
-              CircleAvatar(radius: 28, child: Text((u?.displayName ?? 'U').characters.first.toUpperCase())),
-              const SizedBox(width: 12),
+              Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 32,
+                    backgroundImage: u?.photoURL != null ? NetworkImage(u!.photoURL!) : null,
+                    child: u?.photoURL == null
+                        ? Text((u?.displayName ?? 'U').characters.first.toUpperCase(), style: const TextStyle(fontSize: 18))
+                        : null,
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: GestureDetector(
+                      onTap: _uploadingPhoto ? null : _updateProfilePicture,
+                      child: CircleAvatar(
+                        radius: 12,
+                        backgroundColor: Theme.of(context).primaryColor,
+                        child: _uploadingPhoto
+                            ? const SizedBox(height: 12, width: 12, child: CircularProgressIndicator(strokeWidth: 1, color: Colors.white))
+                            : const Icon(Icons.camera_alt, size: 14, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 16),
               Expanded(child: Text(u?.email ?? u?.phoneNumber ?? 'Anonymous')),
             ]),
             const SizedBox(height: 16),

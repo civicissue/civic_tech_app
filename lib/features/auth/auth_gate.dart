@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'phone_auth.dart';
 
-final authStateProvider = StreamProvider<User?>((ref) => FirebaseAuth.instance.authStateChanges());
+final authStateProvider = StreamProvider<User?>(
+  (ref) => FirebaseAuth.instance.authStateChanges(),
+);
 
 class AuthGate extends ConsumerWidget {
   final Widget child;
@@ -18,7 +20,7 @@ class AuthGate extends ConsumerWidget {
       'uid': user.uid,
       'displayName': user.displayName,
       'email': user.email,
-'photoURL': user.photoURL,
+      'photoURL': user.photoURL,
       'phoneNumber': user.phoneNumber,
       'impactScore': FieldValue.increment(0),
       'updatedAt': FieldValue.serverTimestamp(),
@@ -40,7 +42,10 @@ class AuthGate extends ConsumerWidget {
       final cred = await FirebaseAuth.instance.signInWithProvider(provider);
       await _ensureUserDocAndToken(cred.user!);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Sign-in failed: $e')));
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Sign-in failed: $e')));
     }
   }
 
@@ -56,7 +61,10 @@ class AuthGate extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('Welcome to CivicTech', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Welcome to CivicTech',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 16),
                   FilledButton.icon(
                     onPressed: () => _signInWithGoogle(context),
@@ -65,7 +73,11 @@ class AuthGate extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
                   OutlinedButton.icon(
-                    onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PhoneSignInScreen())),
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const PhoneSignInScreen(),
+                      ),
+                    ),
                     icon: const Icon(Icons.sms_outlined),
                     label: const Text('Continue with Phone'),
                   ),
@@ -78,7 +90,8 @@ class AuthGate extends ConsumerWidget {
         _ensureUserDocAndToken(user);
         return child;
       },
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (e, _) => Scaffold(body: Center(child: Text('Auth error: $e'))),
     );
   }

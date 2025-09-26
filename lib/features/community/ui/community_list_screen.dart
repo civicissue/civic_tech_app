@@ -10,14 +10,27 @@ class CommunityListScreen extends ConsumerWidget {
 
   Future<void> _verify(String reportId) async {
     final uid = FirebaseAuth.instance.currentUser!.uid;
-    final voteRef = FirebaseFirestore.instance.collection('reports').doc(reportId).collection('votes').doc(uid);
+    final voteRef = FirebaseFirestore.instance
+        .collection('reports')
+        .doc(reportId)
+        .collection('votes')
+        .doc(uid);
     final doc = await voteRef.get();
     if (doc.exists) {
       await voteRef.delete();
-      await FirebaseFirestore.instance.collection('reports').doc(reportId).update({'votesCount': FieldValue.increment(-1)});
+      await FirebaseFirestore.instance
+          .collection('reports')
+          .doc(reportId)
+          .update({'votesCount': FieldValue.increment(-1)});
     } else {
-      await voteRef.set({'value': true, 'createdAt': FieldValue.serverTimestamp()});
-      await FirebaseFirestore.instance.collection('reports').doc(reportId).update({'votesCount': FieldValue.increment(1)});
+      await voteRef.set({
+        'value': true,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      await FirebaseFirestore.instance
+          .collection('reports')
+          .doc(reportId)
+          .update({'votesCount': FieldValue.increment(1)});
     }
   }
 
@@ -32,11 +45,16 @@ class CommunityListScreen extends ConsumerWidget {
         itemBuilder: (_, i) {
           final r = list[i];
           return ListTile(
-            tileColor: Colors.white.withOpacity(0.06),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            tileColor: Colors.white.withValues(alpha: 0.06),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             title: Text(r.category.toUpperCase()),
             subtitle: Text(r.description ?? 'No description'),
-            trailing: FilledButton.tonal(onPressed: () => _verify(r.id), child: const Text('Verify')),
+            trailing: FilledButton.tonal(
+              onPressed: () => _verify(r.id),
+              child: const Text('Verify'),
+            ),
           );
         },
       ),

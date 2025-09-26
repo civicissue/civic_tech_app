@@ -59,6 +59,7 @@ dependencies:
   intl:
   json_annotation:
   hooks_riverpod:
+  google_sign_in: ^5.2.1
 
 dev_dependencies:
   flutter_test:

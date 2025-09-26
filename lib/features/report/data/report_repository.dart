@@ -17,13 +17,19 @@ class ReportRepository {
   Stream<List<ReportDoc>> myReports() {
     final uid = _auth.currentUser?.uid;
     if (uid == null) return const Stream.empty();
+    // Avoid composite index by removing orderBy here; sort on client.
     return _db
         .collection('reports')
         .where('authorId', isEqualTo: uid)
-        .orderBy('createdAt', descending: true)
         .limit(50)
         .snapshots()
-        .map((s) => s.docs.map((d) => ReportDoc.fromMap(d.id, d.data())).toList());
+        .map((s) {
+          final list = s.docs
+              .map((d) => ReportDoc.fromMap(d.id, d.data()))
+              .toList();
+          list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          return list.length > 50 ? list.sublist(0, 50) : list;
+        });
   }
 
   Stream<List<ReportDoc>> recentReports({int limit = 50}) {
@@ -32,7 +38,9 @@ class ReportRepository {
         .orderBy('createdAt', descending: true)
         .limit(limit)
         .snapshots()
-        .map((s) => s.docs.map((d) => ReportDoc.fromMap(d.id, d.data())).toList());
+        .map(
+          (s) => s.docs.map((d) => ReportDoc.fromMap(d.id, d.data())).toList(),
+        );
   }
 
   Future<XFile?> pickImage() async {
@@ -67,7 +75,9 @@ class ReportRepository {
     ).toMap();
     await doc.set(data);
     // naive impact score increment for demo
-    await _db.collection('users').doc(uid).set({'impactScore': FieldValue.increment(1)}, SetOptions(merge: true));
+    await _db.collection('users').doc(uid).set({
+      'impactScore': FieldValue.increment(1),
+    }, SetOptions(merge: true));
     return doc.id;
   }
 }
