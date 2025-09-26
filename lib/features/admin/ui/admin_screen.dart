@@ -8,7 +8,10 @@ class AdminScreen extends ConsumerWidget {
   const AdminScreen({super.key});
 
   Future<void> _updateStatus(String id, String status) async {
-    await FirebaseFirestore.instance.collection('reports').doc(id).update({'status': status, 'updatedAt': FieldValue.serverTimestamp()});
+    await FirebaseFirestore.instance.collection('reports').doc(id).update({
+      'status': status,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
   @override
@@ -21,13 +24,19 @@ class AdminScreen extends ConsumerWidget {
           final r = list[i];
           return ListTile(
             title: Text(r.category.toUpperCase()),
-            subtitle: Text(r.description ?? 'No description'),
+            subtitle: Text(r.description),
             trailing: DropdownButton<String>(
               value: r.status,
               items: const [
                 DropdownMenuItem(value: 'submitted', child: Text('submitted')),
-                DropdownMenuItem(value: 'acknowledged', child: Text('acknowledged')),
-                DropdownMenuItem(value: 'in_progress', child: Text('in_progress')),
+                DropdownMenuItem(
+                  value: 'acknowledged',
+                  child: Text('acknowledged'),
+                ),
+                DropdownMenuItem(
+                  value: 'in_progress',
+                  child: Text('in_progress'),
+                ),
                 DropdownMenuItem(value: 'resolved', child: Text('resolved')),
                 DropdownMenuItem(value: 'invalid', child: Text('invalid')),
               ],

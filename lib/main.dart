@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -20,8 +18,8 @@ final authStateProvider = StreamProvider<User?>(
 );
 
 final appInitProvider = FutureProvider<void>((ref) async {
-  // Firebase is already initialized in main(), so just add polish delay
-  await Future<void>.delayed(const Duration(milliseconds: 600));
+  // Minimum splash time for animated brand entrance
+  await Future<void>.delayed(const Duration(milliseconds: 1500));
 });
 
 void main() async {
@@ -85,16 +83,41 @@ class _SplashScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFF0E0E10),
       body: Center(
-        child: _Glass(
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 22),
-          child: const Text(
-            'CivicTech',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.4,
-            ),
-          ),
+        child: TweenAnimationBuilder<double>(
+          duration: const Duration(milliseconds: 800),
+          tween: Tween(begin: 0.0, end: 1.0),
+          curve: Curves.easeOutCubic,
+          builder: (context, t, _) {
+            return Transform.scale(
+              scale: 0.95 + 0.05 * t,
+              child: Opacity(
+                opacity: t,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: Image.asset(
+                        'assets/app_icon.png',
+                        width: 140,
+                        height: 140,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Civic Sense',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -218,32 +241,6 @@ class _CivicTechAppState extends ConsumerState<CivicTechApp> {
             label: 'Leaders',
           ),
         ],
-      ),
-    );
-  }
-}
-
-// Legacy placeholder pages removed in favor of real screens
-
-class _Glass extends StatelessWidget {
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-  const _Glass({required this.child, this.padding = const EdgeInsets.all(16)});
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-        child: Container(
-          padding: padding,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.08),
-            border: Border.all(color: Colors.white.withOpacity(0.18)),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: child,
-        ),
       ),
     );
   }

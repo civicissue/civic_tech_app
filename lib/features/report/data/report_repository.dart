@@ -56,9 +56,10 @@ class ReportRepository {
 
   Future<String> createReport({
     required String category,
-    String? description,
-    GeoPoint? location,
-    String? imageUrl,
+    required String description,
+    required GeoPoint location,
+    required String address,
+    required String imageUrl,
   }) async {
     final uid = _auth.currentUser!.uid;
     final doc = _db.collection('reports').doc();
@@ -70,7 +71,7 @@ class ReportRepository {
       description: description,
       imageUrl: imageUrl,
       location: location,
-      address: null,
+      address: address,
       createdAt: DateTime.now(),
     ).toMap();
     await doc.set(data);

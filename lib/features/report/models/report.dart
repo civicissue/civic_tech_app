@@ -5,10 +5,10 @@ class ReportDoc {
   final String authorId;
   final String category; // e.g., pothole, garbage, streetlight, other
   final String status; // submitted, acknowledged, in_progress, resolved, invalid
-  final String? description;
-  final String? imageUrl;
-  final GeoPoint? location;
-  final String? address;
+  final String description; // required
+  final String imageUrl; // required
+  final GeoPoint location; // required
+  final String address; // required
   final DateTime createdAt;
 
   const ReportDoc({
@@ -16,10 +16,10 @@ class ReportDoc {
     required this.authorId,
     required this.category,
     required this.status,
-    this.description,
-    this.imageUrl,
-    this.location,
-    this.address,
+    required this.description,
+    required this.imageUrl,
+    required this.location,
+    required this.address,
     required this.createdAt,
   });
 
@@ -28,10 +28,10 @@ class ReportDoc {
         authorId: m['authorId'] ?? '',
         category: m['category'] ?? 'other',
         status: m['status'] ?? 'submitted',
-        description: m['description'],
-        imageUrl: m['imageUrl'],
-        location: m['location'],
-        address: m['address'],
+        description: (m['description'] ?? '') as String,
+        imageUrl: (m['imageUrl'] ?? '') as String,
+        location: m['location'] as GeoPoint,
+        address: (m['address'] ?? '') as String,
         createdAt: (m['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       );
 

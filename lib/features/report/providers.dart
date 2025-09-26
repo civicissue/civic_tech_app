@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import 'data/report_repository.dart';
 import 'models/report.dart';
@@ -21,13 +22,17 @@ class CreateReportState {
   final String? error;
   final String? reportId;
   final File? pickedFile;
-  const CreateReportState({this.loading = false, this.error, this.reportId, this.pickedFile});
-  CreateReportState copyWith({bool? loading, String? error, String? reportId, File? pickedFile}) =>
+  final GeoPoint? location;
+  final String? address;
+  const CreateReportState({this.loading = false, this.error, this.reportId, this.pickedFile, this.location, this.address});
+  CreateReportState copyWith({bool? loading, String? error, String? reportId, File? pickedFile, GeoPoint? location, String? address}) =>
       CreateReportState(
         loading: loading ?? this.loading,
         error: error,
         reportId: reportId,
         pickedFile: pickedFile ?? this.pickedFile,
+        location: location ?? this.location,
+        address: address ?? this.address,
       );
 }
 
@@ -41,15 +46,30 @@ class CreateReportController extends StateNotifier<CreateReportState> {
     state = state.copyWith(pickedFile: File(x.path));
   }
 
-  Future<void> submit({required String category, String? description, GeoPoint? location}) async {
+  Future<void> setLocation(GeoPoint loc, String address) async {
+    state = state.copyWith(location: loc, address: address);
+  }
+
+  Future<void> submit({required String category, required String description}) async {
     try {
-      state = state.copyWith(loading: true, error: null, reportId: null);
-      final reportId = await repo.createReport(category: category, description: description, location: location);
-      String? url;
-      if (state.pickedFile != null) {
-        url = await repo.uploadImage(state.pickedFile!, reportId: reportId);
-        await FirebaseFirestore.instance.collection('reports').doc(reportId).update({'imageUrl': url});
+      if (state.pickedFile == null) {
+        state = state.copyWith(error: 'Please add a photo');
+        return;
       }
+      if (state.location == null || state.address == null) {
+        state = state.copyWith(error: 'Please select the exact location');
+        return;
+      }
+      state = state.copyWith(loading: true, error: null, reportId: null);
+      final tempId = const Uuid().v4();
+      final url = await repo.uploadImage(state.pickedFile!, reportId: tempId) ?? '';
+      final reportId = await repo.createReport(
+        category: category,
+        description: description,
+        location: state.location!,
+        address: state.address!,
+        imageUrl: url,
+      );
       state = state.copyWith(loading: false, reportId: reportId);
     } catch (e) {
       state = state.copyWith(loading: false, error: e.toString());

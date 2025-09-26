@@ -50,7 +50,7 @@ class CommunityListScreen extends ConsumerWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             title: Text(r.category.toUpperCase()),
-            subtitle: Text(r.description ?? 'No description'),
+            subtitle: Text(r.description),
             trailing: FilledButton.tonal(
               onPressed: () => _verify(r.id),
               child: const Text('Verify'),
