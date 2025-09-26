@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "893334775463",
+    "project_id": "civicsense-473112",
+    "storage_bucket": "civicsense-473112.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:893334775463:android:28a83117672767f7f89d82",
+        "android_client_info": {
+          "package_name": "com.example.civic_tech"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYoKlxxs974kEFQGCDgctMXb4HBMHYE_c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
